@@ -137,6 +137,9 @@ proc translateType(name: string): string =
   if result.endsWith("Ptr"):
     result = "ptr " & result[0..^4]
 
+  if result.contains("::"):
+    result = "pointer"
+
   for d in 0 ..< depth:
     result = "ptr " & result
     if result == "ptr ptr ImDrawList":
@@ -263,7 +266,7 @@ proc genTypes(output: var string) =
 
       let arrayData = memberName.translateArray()
       let memberType = member["type"].getStr().translateType()
-      output.add("    {arrayData[1]}* {memberImGuiName}: array[{arrayData[0]}, {memberType}]\n".fmt)
+      output.add("    {arrayData[1]}* {memberImGuiName}: array[int({arrayData[0]}), {memberType}]\n".fmt)
 
 proc genProcs(output: var string) =
   let file = readFile("src/imgui/private/cimgui/generator/output/definitions.json")
@@ -332,6 +335,7 @@ proc genProcs(output: var string) =
           argDefault = argDefault.replace("FLT_MAX", "high(float32)")
           argDefault = argDefault.replace("((void*)0)", "nil")
           argDefault = argDefault.replace("NULL", "nil")
+          argDefault = argDefault.replace("nullptr", "nil")
           argDefault = argDefault.replace("-FLT_MIN", "0")
           argDefault = argDefault.replace("~0", "-1")
           argDefault = argDefault.replace("sizeof(float)", "sizeof(float32).int32")
